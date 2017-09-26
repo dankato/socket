@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>websocket.io App</title>
+        <!-- <link rel="stylesheet" href="main.css"> -->
+        <link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
+        
+    <style>
+        body{
+        background:#8e44ad;
+        color: white;
+        font-family: 'Roboto', sans-serif;
+        }
+
+        #container{
+            width:500px;
+            margin:0 auto;
+        }
+
+        #chatWindow{
+            height: auto;
+        }
+
+        #mainWrapper{
+            display:none;		
+        }
+
+        #chatWrapper{
+            border:1px #ccc solid;
+            background:#9b59b6;
+            padding:30px;
+        }
+
+        #namesWrapper{
+            text-align: center; 
+            border:1px #404242 solid;
+            border-radius: 1px;
+            background:#9b59b6;
+            padding:10px;
+            /* margin-left:20px; */
+        }
+
+        input{
+            height:20px;
+            border:solid 1px #ccc;
+        }
+
+        #submit {
+            background-color: #21B821;
+        }
+
+    </style>
+
+    </head>
+    <body>
+        <div id="container">
+                <div id="namesWrapper">
+                    <h2>Chatosphere</h2>
+                    <p>Create profile:</p>
+                    <div id="error"></div>
+                    <form id="usernameForm">
+                        <input type="text" size="30" id="username" placeholder="User"><br>
+                        <input type="text" size="30" id="username" placeholder="Password"><br>
+                        <input id="submit" type="submit" value="Submit">
+                    </form>
+                </div>
+        
+                <div id="mainWrapper">
+                    <h2>Chatosphere</h2>
+                    <div id="chatWrapper">
+                        <div id="chatWindow"></div>
+                        <form id="messageForm">
+                            <input type="text" size="35" id="message" placeholder="Enter message here">
+                            <input type="submit" value="Submit">
+                        </form>
+                    </div>
+    
+                </div>
+            </div>
+        
+            <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+            <script src="/socket.io/socket.io.js"></script>
+            <script>
+                $(function(){
+                    var socket = io.connect();
+                    var $messageForm = $('#messageForm');
+                    var $message = $('#message');
+                    var $chat = $('#chatWindow');
+                    var $usernameForm = $('#usernameForm');
+                    var $username = $('#username');
+                    var $error = $('#error');
+        
+                    // when a user submit username, call function   
+                    $usernameForm.submit(function(e){
+                        e.preventDefault();
+                        // Emit an event, check input value and toggle views, handle error if invalid input
+                        socket.emit('new user', $username.val(), function(data){
+                            if(data){
+                                $('#namesWrapper').hide();
+                                $('#mainWrapper').show();
+                            } else{
+                                $error.html('Username is taken');
+                            }
+                        });
+                    });
+                    // Sending user's message input when Submit is clicked
+                    $messageForm.submit(function(e){
+                        e.preventDefault();
+                        socket.emit('send message', $message.val());
+                        $message.val('');
+                    });
+        
+                    socket.on('new message', function(data){
+                        $chat.append('<strong>'+data.user+'</strong>: '+data.msg+'<br>');
+                    });
+        
+                });
+            </script>
+    </body>
+</html>
